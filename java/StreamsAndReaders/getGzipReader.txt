@@ -1,0 +1,15 @@
+    /**
+     * Create a Buffered Reader based on a GZipInputStream, since there isn't any sort of
+     * GZipReader class)
+     *
+     * @param fileUrl   String representing the URL of the remote file
+     * @return  a BufferedReader from the URL
+     * @throws IOException  thrown when something goes wrong creating a reader
+     */
+    private BufferedReader createGzipReader(String fileUrl) throws IOException {
+
+        GZIPInputStream gzis = new GZIPInputStream(createInputStream(fileUrl));
+        InputStreamReader isr = new InputStreamReader(gzis, "UTF-8");
+
+        return new BufferedReader(isr);
+    }

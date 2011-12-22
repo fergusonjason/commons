@@ -1,0 +1,11 @@
+    /**
+     * Create an InputStream from a String representing a remote URL
+     *
+     * @param urlLocation   String representing the URL of the remote file
+     * @return  an InputStream from the remote file
+     * @throws IOException thrown when something goes wrong creating a reader
+     */
+    private InputStream createInputStream(String urlLocation) throws IOException {
+        URL url = new URL(urlLocation);
+        return url.openStream();
+    }

@@ -1,0 +1,15 @@
+    /**
+     * Quick and dirty method to determine if a String represents a double. Not too robust, but works for
+     * what I need
+     *
+     * @param value String to check
+     * @return  true if value represents a double, false otherwise
+     */
+    @SuppressWarnings({"SimplifiableIfStatement"})
+    private boolean isDouble(String value) {
+        if (value == null) {
+            return false;
+        }
+
+        return Pattern.matches("^\\s*[\\+,-]?[0-9]*\\.[0-9]*$", value);
+    }
