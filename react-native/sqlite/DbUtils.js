@@ -1,30 +1,37 @@
 import SQLite from "react-native-sqlite-storage";
 
 SQLite.DEBUG(true);
-SQLite.enablePromise(false);
 
 open = (dbparams) => {
 
-    let result = SQLite.openDatabase({ name: dbparams.name, createFromLocation: dbparams.createFromLocation },
-        () => {
-            console.log("Opened database");
-        },
-        (err) => {
-            console.log("Error opening database: Code: " + err.code + ", message: " + err.message);
-        });
+    return SQLite.openDatabase({ name: dbparams.name, createFromLocation: dbparams.createFromLocation });
 
-    return result;
 }
 
 close = (db) => {
-    db.close();
+
+    db.close(() => {
+        console.log("Database closed")
+    }, (err) => {
+        console.warn("Error closing database: Code: " + err.code + ", message: " + err.message + "(" + JSON.stringify(err) + ")");
+    });
+
 }
 
-query = (db, sql, params) => {
+query = async (db, sql, params) => {
+
+    console.log("Entered query: db: " + JSON.stringify(db));
+
+    if (db === undefined) {
+        console.log("DB is undefined inside query");
+    }
 
     // figured this out from https://stackoverflow.com/questions/47345000/react-native-handling-async-calls-to-sqllite-db
-    return new Promise((resolve, reject) => {
-        db.transaction((tx) => {
+    // TODO: Fix this so that it just returns an array, not {result: []}
+    let queryResult = new Promise((resolve, reject) => {
+
+        db.readTransaction((tx) => {
+            console.log("Beginning transaction");
 
             tx.executeSql(sql, params, (tx, rs) => {
                 let length = rs.rows.length;
@@ -35,37 +42,59 @@ query = (db, sql, params) => {
                 }
 
                 resolve({ result });
-            }, (err) => { console.log("Error in transaction: code: " + err.code + ", message: " + err.message) });
+            }, (err) => { 
+                console.log("Error occured executing sql: code: " + err.code + ", message: " + err.message + "(" + JSON.stringify(err) + ")");
+
+            });
 
 
         });
     });
 
+    return await queryResult;
 }
 
-// not tested yet!
-execute = (db, sql, params) => {
 
-    return new Promise((resolve, reject) => {
-        db.transaction((txt) => {
+execute = async (db, sql, params) => {
+
+    console.log("Entered execute()");
+
+    let result =  new Promise((resolve, reject) => {
+        db.transaction((tx) => {
+            console.log("Beginning transaction");
             tx.executeSql(sql, params, (tx, rs) => {
-                let rowsAffected = rs.rowsAffected;
 
-                resolve({ rowsAffected });
-            })
+                let hasErrors = false;
+                let errorMessage = "";
+                let sqliteErrorCode = -1;
+                let rowsAffected = rs.rowsAffected;
+                
+                resolve({hasErrors, errorMessage, sqliteErrorCode, rowsAffected});
+
+            });
         }, (err) => {
-            console.log("Error in transaction: code: " + err.code + ", message: " + err.message);
+            console.log("Error occured in sql: code: " + err.code + ", message: " + err.message);
+
+            // use a regular expression to extract the error message and sqlite error code
+            let message = err.message;
+            let regex = /^(.*) \(code (\d+)\)$/g;
+            let regexResult = regex.exec(message);
+
+            let hasErrors = true;
+            let errorMessage = regexResult[1];
+            let sqliteErrorCode = new Number(regexResult[2]);
+            let rowsAffected = 0;
+
+            resolve({hasErrors, errorMessage, sqliteErrorCode, rowsAffected});
         });
     });
 
-}
 
-close = (db) => {
-    db.close(() => {
-        console.log("Database closed")
-    }, (err) => {
-        console.log("Unable to close database: code: "+ err.code + ", message: " + err.message);
-    });
+    let queryResult = await result;
+
+    console.log("Exiting execute(), queryResult: " + JSON.stringify(queryResult));
+    return queryResult;
+
 }
 
 export { open, close, query, execute };
