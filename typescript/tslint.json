@@ -1,0 +1,22 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "eofline" : false,
+        "indent" : [true, "spaces", 4],
+        "interface-name" : [true, "never-prefix"],
+        "no-empty" : [true, "allow-empty-catch", "allow-empty-functions"],
+        "object-literal-sort-keys": false,
+        "ordered-imports" : false,
+        "semicolon" : [true, "always"],
+        "trailing-comma" : false,
+        "typedef" : [true, "call-signature", "arrow-call-signature", "parameter", "property-declaration", "variable-declaration","member-variable-declaration"],
+        "typedef-whitespace" : [true, {
+            "parameter" : "onespace"
+        }]
+    },
+    "rulesDirectory": []
+}
